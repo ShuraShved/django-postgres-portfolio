@@ -1,0 +1,186 @@
+{% extends "base_manager.html" %}
+{% block title %}
+Карта клиента
+{% endblock %}
+{% block header_title %}
+Карта клиента
+{% endblock %}
+{% block content %}
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-6 detail-form">
+
+            {% if not person.is_contact %}<p style="color: #98000a;"><strong>Клиент не контактный</strong></p>{% endif %}
+            <p><strong>ID:</strong> {{ person.id }}</p>
+            <p><strong>ФИО:</strong>
+                {{ person.name }}
+                {{ person.surname|default:"" }}
+                {{ person.patronymic|default:"" }}</p>
+            <p><strong>Номер телефона:</strong> {{ person.phone_number }}</p>
+            <p><strong>Дата рождения:</strong>
+            {% if person.birthdate %}
+                {{ person.birthdate|date:"d.m.Y" }}
+                ({{ person_age }} лет)
+            {% else %}
+                Не указано
+            {% endif %}
+            </p>
+            <p><strong>Клиент уже добавлен в чат:</strong> {% if person.chat_status %}Да{% else %}Нет{% endif %}</p>
+            <p><strong>Дата последней задачи:</strong> {{ person.last_task_date }}</p>
+            {% if person.latest_task and person.is_active %}
+                <form action="{% url 'manager-task-edit' person.latest_task.id %}"
+                      method="get"
+                      style="display:inline;">
+                    <button type="submit" class="btn btn-secondary">Править задачу</button>
+                </form>
+            {% else %}
+                <form action="{% url 'manager-task-create' person.id %}" method="get" style="display:inline;">
+                    <button type="submit" class="btn btn-primary">Новая задача</button>
+                </form>
+            {% endif %}
+
+        </div>
+        <div class="col-6 d-flex flex-column align-items-center second-half text-center">
+
+            <h3 style="margin-top:15px;">Игры клиента</h3>
+            <ul>
+                {% for person_game in person_games %}
+                    <li>
+                        {{ person_game.game.name }}
+                        {% if person_game.played_at %}
+                            (Играл: {{ person_game.played_at|date:"d.m.Y H:i" }})
+                        {% else %}
+                            (Дата игры не указана)
+                        {% endif %}
+                    </li>
+                {% empty %}
+                    <li>Клиент не играл в игры.</li>
+                {% endfor %}
+            </ul>
+
+        </div>
+
+    </div>
+    <br>
+    <br>
+    <div class="row bg-light font-weight-bold border-bottom py-2 align-items-center">
+        <div class="col-1 text-center">
+            <a href="?sort=id&direction={% if sort != 'id' %}asc{% elif direction == 'desc' %}asc{% else %}desc{% endif %}">ID</a>
+        </div>
+        <div class="col-2 text-center">Название</div>
+        <div class="col-1 text-center">
+            <a href="?sort=status&direction={% if sort != 'status' %}asc{% elif direction == 'desc' %}asc{% else %}desc{% endif %}">Статус</a>
+        </div>
+        <div class="col-2 text-center">Ответственный</div>
+        <div class="col-2 text-center">
+            <a href="?sort=created_at&direction={% if sort != 'created_at' %}asc{% elif direction == 'desc' %}asc{% else %}desc{% endif %}">Дата начала</a>
+        </div>
+        <div class="col-2 text-center">
+            <a href="?sort=completed_at&direction={% if sort != 'completed_at' %}asc{% elif direction == 'desc' %}asc{% else %}desc{% endif %}">Дата завершения</a>
+        </div>
+        <div class="col-2 text-center">Действия</div>
+    </div>
+
+    {% if tasks %}
+    <div id="task-list">
+        {% for task in tasks %}
+        <div class="row border py-2 my-3 text-center align-items-center" id="task-{{ task.id }}">
+
+            <div class="col-1">
+                {{ task.id }}
+            </div>
+            <div class="col-2">
+                {{ task.title|slice:":20" }}{% if task.title|length > 20 %}...{% endif %}
+            </div>
+            <div class="col-1">
+                {% if task.status is True %}
+                    ✔️
+                {% elif task.status is False %}
+                    ❌
+                {% else %}
+                    Не завершено
+                {% endif %}
+            </div>
+            <div class="col-2">
+                {{ task.user.first_name }} {{ task.user.last_name }}
+            </div>
+            <div class="col-2">
+                {{ task.created_at }}
+            </div>
+            <div class="col-2">
+                {% if task.completed_at %}
+                {{ task.completed_at }}
+                {% else %}
+                Активно
+                {% endif %}
+            </div>
+            <div class="col-2">
+                {% if task.status is Null %}
+                <form action="{% url 'manager-task-edit' task.id %}" method="get" style="display:inline;">
+                    <button class="edit-btn" data-task-id="{{ task.id }}">
+                            ✏️
+                    </button>
+                </form>
+                    <button class="delete-btn" data-task-id="{{ task.id }}">
+                            🗑️️
+                    </button>
+                {% else %}
+                    <form action="{% url 'manager-task-view' task.id %}"
+                          method="get"
+                          style="display:inline;">
+                        <button type="submit" class="btn btn-secondary">Просмотр задачи</button>
+                    </form>
+                {% endif %}
+            </div>
+
+        </div>
+    {% endfor %}
+    </div>
+    {% else %}
+        <p id="container">Задач нет.</p>
+    {% endif %}
+
+</div>
+
+
+
+{% block javascript %}
+<script>
+    $(document).ready(function() {
+        $(".delete-btn").click(function(event) {
+            event.preventDefault();
+            const taskId = $(this).data("task-id");
+
+            // Confirm deletion
+            if (!confirm("Вы уверены, что хотите удалить задачу?")) {
+                return;
+            }
+
+            // Send AJAX DELETE request
+            $.ajax({
+                url: `/api/home/task/${taskId}/delete/`,
+                type: "DELETE",
+                success: function(response) {
+                    if (response.success) {
+                        // Remove task from the DOM
+                        $(`#task-${taskId}`).remove();
+
+                        // Optional: Show a success message
+                        alert("Задача успешно удалена!");
+                    } else {
+                        alert("Не удалось удалить задачу.");
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("Ошибка удаления задачи:", error);
+                    alert("Произошла ошибка при удалении задачи.");
+                }
+            });
+        });
+    });
+</script>
+{% endblock javascript %}
+
+{% endblock %}

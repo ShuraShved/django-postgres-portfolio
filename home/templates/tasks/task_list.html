@@ -1,0 +1,357 @@
+{% extends "base_generic.html" %}
+{% load static %}
+{% block title %}
+    Главная страница
+{% endblock %}
+{% block header_title %}
+    Список задач
+{% endblock %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/main-page.css' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="row bg-light font-weight-bold border-bottom py-2">
+        <div class="col-2 text-center">Название</div>
+        <div class="col-3 text-center">
+            <a href="?sort=created_at&direction={% if sort != 'created_at' %}asc{% elif direction == 'desc' %}asc{% else %}desc{% endif %}">Дата создания</a>
+        </div>
+        <div class="col-3 text-center">Комментарий</div>
+        <div class="col-1 text-center">
+            <a href="?sort=is_important&direction={% if sort != 'is_important' %}asc{% elif direction == 'desc' %}asc{% else %}desc{% endif %}">Важно</a>
+        </div>
+        <div class="col-2 text-center">Дата</div>
+        <div class="col-1 text-center">Действия</div>
+    </div>
+
+    {% if object_list %}
+
+    <div id="section-today" style="display: none;">
+        <h2>Сегодня</h2>
+        {% for task in today %}
+        <div class="row border py-2 my-3 text-center align-items-center" id="task-today-{{ task.id }}">
+            <div class="col-2">
+                <a href="{% url 'task-detail' task.id %}">
+                    {{ task.title|slice:":20" }}
+                    {% if task.title|length > 20 %}...{% endif %}
+                </a>
+            </div>
+            <div class="col-3">
+                {{ task.created_at }}
+            </div>
+            <div class="col-3">
+                {{ task.comment|default:"Нет комментария"|slice:":60" }}
+                {% if task.comment|length > 60 %}...{% endif %}
+            </div>
+            <div class="col-1 text-center">
+                {% if task.is_important %}
+                <span class="material-symbols-outlined important-icon">mode_heat</span>
+                {% else %}
+                <span class="material-symbols-outlined not-important-icon">mode_heat</span>
+                {% endif %}
+            </div>
+            <div class="col-2">
+                <input style="display:inline-block;"
+                    type="date"
+                    class="form-control form-control-sm"
+                    id="time-input-today-{{ task.id }}"
+                    value="{% if task.time_management %}{{ task.time_management|date:'Y-m-d' }}{% endif %}"
+                    onchange="updateTimeManagement({{ task.id }}, this.value)"
+                />
+            </div>
+            <div class="col-1 text-center">
+                <button class="btn delete-btn" onclick="updateTimeManagement({{ task.id }}, null, true)">
+                    🗑️
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+
+    <div id="section-expired" style="display: none;">
+        <h2>Просроченные</h2>
+        {% for task in expired %}
+        <div class="row border py-2 my-3 text-center align-items-center" id="task-expired-{{ task.id }}">
+            <div class="col-2">
+                <a href="{% url 'task-detail' task.id %}">
+                    {{ task.title|slice:":20" }}
+                    {% if task.title|length > 20 %}...{% endif %}
+                </a>
+            </div>
+            <div class="col-3">
+                {{ task.created_at }}
+            </div>
+            <div class="col-3">
+                {{ task.comment|default:"Нет комментария"|slice:":60" }}
+                {% if task.comment|length > 60 %}...{% endif %}
+            </div>
+            <div class="col-1 text-center">
+                {% if task.is_important %}
+                <span class="material-symbols-outlined important-icon">mode_heat</span>
+                {% else %}
+                <span class="material-symbols-outlined not-important-icon">mode_heat</span>
+                {% endif %}
+            </div>
+            <div class="col-2">
+                <input style="display:inline-block;"
+                    type="date"
+                    class="form-control form-control-sm"
+                    id="time-input-expired-{{ task.id }}"
+                    value="{% if task.time_management %}{{ task.time_management|date:'Y-m-d' }}{% endif %}"
+                    onchange="updateTimeManagement({{ task.id }}, this.value)"
+                />
+            </div>
+            <div class="col-1 text-center">
+                <button class="btn delete-btn" onclick="updateTimeManagement({{ task.id }}, null, true)">
+                    🗑️
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+
+    <div id="section-tomorrow" style="display: none;">
+        <h2>Завтра</h2>
+        {% for task in tomorrow %}
+        <div class="row border py-2 my-3 text-center align-items-center" id="task-tomorrow-{{ task.id }}">
+            <div class="col-2">
+                <a href="{% url 'task-detail' task.id %}">
+                    {{ task.title|slice:":20" }}
+                    {% if task.title|length > 20 %}...{% endif %}
+                </a>
+            </div>
+            <div class="col-3">
+                {{ task.created_at }}
+            </div>
+            <div class="col-3">
+                {{ task.comment|default:"Нет комментария"|slice:":60" }}
+                {% if task.comment|length > 60 %}...{% endif %}
+            </div>
+            <div class="col-1 text-center">
+                {% if task.is_important %}
+                <span class="material-symbols-outlined important-icon">mode_heat</span>
+                {% else %}
+                <span class="material-symbols-outlined not-important-icon">mode_heat</span>
+                {% endif %}
+            </div>
+            <div class="col-2">
+                <input style="display:inline-block;"
+                    type="date"
+                    class="form-control form-control-sm"
+                    id="time-input-tomorrow-{{ task.id }}"
+                    value="{% if task.time_management %}{{ task.time_management|date:'Y-m-d' }}{% endif %}"
+                    onchange="updateTimeManagement({{ task.id }}, this.value)"
+                />
+            </div>
+            <div class="col-1 text-center">
+                <button class="btn delete-btn" onclick="updateTimeManagement({{ task.id }}, null, true)">
+                    🗑️
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+
+    <div id="section-later" style="display: none;">
+        <h2>Позже</h2>
+        {% for task in later %}
+        <div class="row border py-2 my-3 text-center align-items-center" id="task-later-{{ task.id }}">
+            <div class="col-2">
+                <a href="{% url 'task-detail' task.id %}">
+                    {{ task.title|slice:":20" }}
+                    {% if task.title|length > 20 %}...{% endif %}
+                </a>
+            </div>
+            <div class="col-3">
+                {{ task.created_at }}
+            </div>
+            <div class="col-3">
+                {{ task.comment|default:"Нет комментария"|slice:":60" }}
+                {% if task.comment|length > 60 %}...{% endif %}
+            </div>
+            <div class="col-1 text-center">
+                {% if task.is_important %}
+                <span class="material-symbols-outlined important-icon">mode_heat</span>
+                {% else %}
+                <span class="material-symbols-outlined not-important-icon">mode_heat</span>
+                {% endif %}
+            </div>
+            <div class="col-2">
+                <input style="display:inline-block;"
+                    type="date"
+                    class="form-control form-control-sm"
+                    id="time-input-later-{{ task.id }}"
+                    value="{% if task.time_management %}{{ task.time_management|date:'Y-m-d' }}{% endif %}"
+                    onchange="updateTimeManagement({{ task.id }}, this.value)"
+                />
+            </div>
+            <div class="col-1 text-center">
+                <button class="btn delete-btn" onclick="updateTimeManagement({{ task.id }}, null, true)">
+                    🗑️
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+
+    <div id="section-main" style="display: none;">
+        <h2>Все задачи</h2>
+        {% for task in main %}
+        <div class="row border py-2 my-3 text-center align-items-center" id="task-main-{{ task.id }}">
+            <div class="col-2">
+                <a href="{% url 'task-detail' task.id %}">
+                    {{ task.title|slice:":20" }}
+                    {% if task.title|length > 20 %}...{% endif %}
+                </a>
+            </div>
+            <div class="col-3">
+                {{ task.created_at }}
+            </div>
+            <div class="col-3">
+                {{ task.comment|default:"Нет комментария"|slice:":60" }}
+                {% if task.comment|length > 60 %}...{% endif %}
+            </div>
+            <div class="col-1 text-center">
+                {% if task.is_important %}
+                <span class="material-symbols-outlined important-icon">mode_heat</span>
+                {% else %}
+                <span class="material-symbols-outlined not-important-icon">mode_heat</span>
+                {% endif %}
+            </div>
+            <div class="col-2">
+                <input style="display:inline-block;"
+                    type="date"
+                    class="form-control form-control-sm"
+                    id="time-input-main-{{ task.id }}"
+                    value="{% if task.time_management %}{{ task.time_management|date:'Y-m-d' }}{% endif %}"
+                    onchange="updateTimeManagement({{ task.id }}, this.value)"
+                />
+            </div>
+            <div class="col-1 text-center">
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+      <p id="container">Задач нет.</p>
+    {% endif %}
+
+</div>
+
+{% block javascript %}
+<script>
+
+    $(document).on("change", ".time-management-input", function () {
+        const taskId = $(this).data("task-id");
+        const newDate = $(this).val();
+        updateTimeManagement(taskId, newDate);
+    });
+
+
+function toggleSectionVisibility(sectionId) {
+    const section = document.getElementById(`section-${sectionId}`);
+    if (section) {
+        const list = section.querySelector("div");
+
+        if (list && list.children.length > 0) {
+            section.style.display = "block";
+        } else {
+            section.style.display = "none";
+        }
+    }
+}
+
+
+function updateTimeManagement(taskId, newDate, clear = false) {
+    $.ajax({
+        url: `/api/home/task/${taskId}/update-time-management/`,
+        type: "POST",
+        headers: {
+            "X-CSRFToken": $('[name=csrfmiddlewaretoken]').val(),
+        },
+        contentType: "application/json",
+        data: JSON.stringify({
+            time_management: newDate,
+            clear: clear
+        }),
+        success: function (data) {
+            if (data.section) {
+                const $taskElement = $(`#task-main-${taskId}, #task-today-${taskId},
+                #task-tomorrow-${taskId}, #task-later-${taskId}, #task-expired-${taskId}`);
+                if ($taskElement.length) {
+                    const currentSection = $taskElement.closest(
+                    "div[id^='section-']").attr("id").replace("section-", "");
+                    $taskElement.remove();
+                    toggleSectionVisibility(currentSection);
+                }
+
+                const $newSection = $(`#section-${data.section}`);
+                if ($newSection.length) {
+                    const comment = data.comment || "Нет комментария";
+
+                    const isImportantIcon = data.is_important
+                    ? `<span class="material-symbols-outlined important-icon">mode_heat</span>`
+                    : `<span class="material-symbols-outlined not-important-icon">mode_heat</span>`;
+                    const timeManagement = data.time_management || "Не назначено";
+                    const newElement = `
+                        <div class="row border py-2 my-3 text-center align-items-center"
+                        id="task-${data.section}-${data.id}">
+                            <div class="col-2">
+                                <a href="${data.id}/">
+                                    ${data.title.length > 20 ? data.title.slice(0, 20) + '...' : data.title}
+                                </a>
+                            </div>
+                            <div class="col-3">
+                                ${data.formatted_created_at}
+                            </div>
+                            <div class="col-3">
+                                ${comment.length > 60 ? comment.slice(0, 60) + '...' : comment}
+                            </div>
+                            <div class="col-1 text-center">${isImportantIcon}</div>
+                            <div class="col-2 text-center">
+                                <input
+                                    style="display:inline-block;"
+                                    type="date"
+                                    class="form-control form-control-sm"
+                                    id="time-input-${data.section}-${data.id}"
+                                    value="${data.time_management || ""}"
+                                    onchange="updateTimeManagement(${data.id}, this.value)"
+                                />
+                            </div>
+                            <div class="col-1 text-center">
+                            ${data.section !== 'main' ? `
+                                <button class="btn delete-btn" onclick="updateTimeManagement(${data.id}, null, true)">
+                                    🗑️
+                                </button>` : '' }
+                            </div>
+                        </div>`;
+                    $newSection.append(newElement);
+                    toggleSectionVisibility(data.section);
+                }
+            } else {
+                console.error("Error:", data.message);
+            }
+        },
+        error: function (xhr) {
+            console.error("Error:", xhr.responseJSON ? xhr.responseJSON.message : "Unknown error");
+        },
+    });
+}
+    document.addEventListener("DOMContentLoaded", function () {
+        ["main", "today", "tomorrow", "later", "expired"].forEach(toggleSectionVisibility);
+    });
+
+</script>
+{% endblock javascript %}
+{% endblock %}

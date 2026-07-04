@@ -1,0 +1,65 @@
+{% extends "base_manager.html" %}
+{% block title %}
+Создание задачи
+{% endblock %}
+{% block header_title %}
+Создание задачи
+{% endblock %}
+{% block breadcrumbs %}
+<li class="breadcrumb-item active" aria-current="page">Создание задачи</li>
+{% endblock %}
+{% block content %}
+
+<span>Клиент:
+    <a href="{% url 'manager-person-detail' person.id %}">
+        <strong>{{ person.name }} {{ person.surname }} {{ person.patronymic }}</strong>
+    </a>
+</span>
+<form method="POST" id="taskForm" style="margin-top:20px;">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="hidden" name="person" value="{{ person.id }}">
+  <button type="submit" class="btn btn-primary" style="margin-bottom: 50px;">Создать</button>
+</form>
+
+{% block javascript %}
+<script>
+$(document).ready(function () {
+
+    $('#taskForm').submit(function (e) {
+        e.preventDefault();
+
+        // Collect form data
+        const formData = $(this).serializeArray(); // Serialize the form into an array
+        const data = {};
+        // Convert the serialized array into an object
+        formData.forEach(function (field) {
+            data[field.name] = field.value;
+        });
+
+        $.ajax({
+            url: '/api/home/task/create/',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            headers: {
+                'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val(),
+            },
+            success: function (data) {
+                if (data.success) {
+                    window.location.href = "/home/manager/contacts/";
+                } else {
+                    alert("Error adding contact.");
+                }
+            },
+            error: function (xhr) {
+                alert(`Error: ${xhr.responseText}`);
+                console.error('Error:', xhr.responseText);
+            },
+        });
+    });
+});
+</script>
+{% endblock javascript %}
+
+{% endblock %}

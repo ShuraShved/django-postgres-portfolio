@@ -1,0 +1,80 @@
+{% extends "base_manager.html" %}
+{% block title %}
+Редактирование задачи
+{% endblock %}
+{% block header_title %}
+Редактирование задачи
+{% endblock %}
+{% block content %}
+
+<div class="container-fluid">
+
+<span>Клиент:
+    <a href="{% url 'manager-person-detail' person.id %}">
+        <strong>{{ person.name }} {{ person.surname }} {{ person.patronymic }}</strong>
+    </a>
+</span>
+
+
+    <form id="taskForm" method="POST" action="{% url 'edit-task' task.id %}">
+        {% csrf_token %}
+            {{ form.as_p }}
+        <input type="hidden" name="next" value="{{ request.META.HTTP_REFERER }}">
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+
+
+
+
+    <br>
+    <h3>История взаимодействий сотрудника с задачей</h3>
+    <ul style="padding-bottom: 50px;">
+        {% for log in logs %}
+            {% if log.log_type == "time" %}
+                {% if log.time_management is null %}
+                    <li>
+                        Время удалено пользователем {{ log.user.first_name }} {{ log.user.last_name }}
+                        дата {{ log.created_at }}
+                    </li>
+                {% else %}
+                    <li>
+                        Время изменено на {{ log.time_management }}
+                        пользователем {{ log.user.first_name }} {{ log.user.last_name }}
+                        дата {{ log.created_at }}
+                    </li>
+                {% endif %}
+            {% elif log.log_type == "comment" %}
+                <li>
+                    Комментарий изменен на {{ log.comment }}
+                    пользователем {{ log.user.first_name }} {{ log.user.last_name }}
+                    дата {{ log.created_at }}
+                </li>
+            {% elif log.log_type == "status" %}
+                <li>
+                    {% if log.status == True %}
+                    Статус задачи изменен на Успешно
+                    {% elif log.status == False %}
+                    Статус задачи изменен на Неуспешно
+                    {% else %}
+                    Задача возобновлена
+                    {% endif %}
+                    пользователем {{ log.user.first_name }} {{ log.user.last_name }}
+                    дата {{ log.created_at }}
+                </li>
+            {% else %}
+                <li>
+                    Неизвестный лог: {{ log }}
+                </li>
+            {% endif %}
+        {% empty %}
+            <li>Нет истории взаимодействий.</li>
+        {% endfor %}
+    </ul>
+
+</div>
+
+{% block javascript %}
+
+{% endblock javascript %}
+
+{% endblock %}

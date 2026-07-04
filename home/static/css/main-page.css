@@ -1,0 +1,39 @@
+.custom-btn {
+    height: 40px;
+}
+
+@media (min-width: 1366px) {
+.form-container {
+    min-width: 1200px; /* Larger min-width for tablets and larger screens */
+    min-height: 120px; /* Larger min-height for bigger screens */
+    }
+}
+
+li > * {
+    flex-shrink: 0; /* Prevent shrinking of elements */
+}
+
+a {
+    flex: 1; /* Allow the link to take up available space */
+    text-align: left; /* Align text to the left */
+    overflow: hidden; /* Prevent overflow */
+    text-overflow: ellipsis; /* Add ellipsis for long text */
+    white-space: nowrap; /* Keep content on a single line */
+}
+
+input {
+    flex: 0 0 150px; /* Fixed width for the input field */
+}
+
+span {
+    flex: 2; /* Allow the span to take more space relative to other elements */
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+button {
+    flex: 0 0 50px; /* Fixed width for the button */
+    text-align: center;
+}
