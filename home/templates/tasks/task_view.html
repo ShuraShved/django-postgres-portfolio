@@ -1,0 +1,78 @@
+{% extends "base_generic.html" %}
+{% block title %}
+Просмотр задачи
+{% endblock %}
+{% block header_title %}
+Просмотр задачи
+{% endblock %}
+{% block breadcrumbs %}
+<li class="breadcrumb-item active"><a href="{{ request.META.HTTP_REFERER }}">Детали задачи</a></li>
+<li class="breadcrumb-item active" aria-current="page">Просмотр задачи</li>
+{% endblock %}
+{% block content %}
+
+
+<div class="container-fluid">
+
+<span>Клиент:
+        <strong>{{ person.name }} {{ person.surname }} {{ person.patronymic }}</strong>
+</span>
+<br>
+    <br>
+<p><strong>ID:</strong> {{ task.id }}</p>
+<p><strong>Класс задачи:</strong>
+    {% if task.task_type.name == 'Повышение лояльности' %}
+    Повышение лояльности
+    {% elif task.task_type.name == 'Предпродажные коммуникации' %}
+    Предпродажные коммуникации
+    {% else %}
+    Нет класса
+    {% endif %}
+</p>
+<p><strong>Заголовок:</strong> {{ task.title }}</p>
+<p><strong>Описание:</strong> {{ task.description }}</p>
+<p><strong>Ответственный:</strong> {{ task.user.first_name }} {{ task.user.last_name }}</p>
+<p><strong>Важная задача:</strong> {% if task.is_important == True %} Да {% else %} Нет {% endif %}</p>
+<p><strong>Пригласить в промо-чат:</strong> {% if task.is_invite == True %} Да {% else %} Нет {% endif %}</p>
+<p><strong>Результат:</strong> {% if task.status == True %} Успешно {% else %} Неуспешно {% endif %}</p>
+
+
+    <br>
+    <h3>История взаимодействий</h3>
+    <ul style="padding-bottom: 50px;">
+        {% for log in logs %}
+            {% if log.log_type == "comment" %}
+                <li>
+                    Комментарий изменен на {{ log.comment }}
+                    пользователем {{ log.user.first_name }} {{ log.user.last_name }}
+                    дата {{ log.created_at }}
+                </li>
+            {% elif log.log_type == "status" %}
+                <li>
+                    {% if log.status == True %}
+                    Статус задачи изменен на Успешно
+                    {% elif log.status == False %}
+                    Статус задачи изменен на Неуспешно
+                    {% else %}
+                    Задача возобновлена
+                    {% endif %}
+                    пользователем {{ log.user.first_name }} {{ log.user.last_name }}
+                    дата {{ log.created_at }}
+                </li>
+            {% else %}
+                <li>
+                    Неизвестный лог: {{ log }}
+                </li>
+            {% endif %}
+        {% empty %}
+            <li>Нет истории взаимодействий.</li>
+        {% endfor %}
+    </ul>
+
+</div>
+
+{% block javascript %}
+
+{% endblock javascript %}
+
+{% endblock %}

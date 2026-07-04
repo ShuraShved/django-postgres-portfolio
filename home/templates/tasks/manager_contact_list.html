@@ -1,0 +1,106 @@
+{% extends "base_manager.html" %}
+{% block title %}
+Список Клиентов
+{% endblock %}
+{% block header_title %}
+Список клиентов
+{% endblock %}
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="row bg-light font-weight-bold border-bottom py-2 align-items-center">
+        <div class="col-1 text-center">
+            <a href="?sort=id&direction={% if sort != 'id' %}asc{% elif direction == 'desc' %}asc{% else %}desc{% endif %}">ID</a>
+        </div>
+        <div class="col-2 text-center">Ф.И.О.</div>
+        <div class="col-2 text-center">
+            <a href="?sort=last_played_at&direction={% if sort != 'last_played_at'%}asc{% elif direction == 'desc' %}asc{% else %}desc{% endif %}">Дата последней игры</a>
+        </div>
+        <div class="col-1 text-center">
+            <a href="?sort=last_task_date&direction={% if sort != 'last_task_date'%}asc{% elif direction == 'desc' %}asc{% else %}desc{% endif %}">Последняя задача</a>
+        </div>
+        <div class="col-2 text-center">
+            <a href="?sort=birthdate&direction={% if sort != 'birthdate' %}asc{% elif direction == 'desc' %}asc{% else %}desc{% endif %}">Дата рождения</a>
+        </div>
+        <div class="col-1 text-center">
+            <a href="?sort=game_count&direction={% if sort != 'game_count' %}asc{% elif direction == 'asc' %}desc{% else %}asc{% endif %}">
+    Количество игр
+</a>
+        </div>
+        <div class="col-1 text-center">
+            <a href="?sort=chat_status&direction={% if sort != 'chat_status' %}asc{% elif direction == 'desc' %}asc{% else %}desc{% endif %}">В промо-чате</a>
+        </div>
+        <div class="col-2 text-center">Действия</div>
+    </div>
+
+    {% if persons %}
+    <div id="person-list">
+        {% for person in persons %}
+        <div class="row border py-2 my-3 text-center align-items-center"
+             style="{% if not person.is_contact %}border-color: red !important;{% endif %}">
+            <div class="col-1">
+                {{ person.id }}
+            </div>
+            <div class="col-2">
+                <a href="{% url 'manager-person-detail' person.id %}">
+                    {{ person.name }} {{ person.surname|default:"" }} {{ person.patronymic|default:"" }}
+                </a>
+            </div>
+            <div class="col-2">
+                {{ person.last_played_at }}
+            </div>
+            <div class="col-1">
+
+                {% if person.last_task_date %}
+        {{ person.last_task_date }}
+    {% else %}
+        Нет данных
+    {% endif %}
+
+            </div>
+            <div class="col-2">
+                {% if person.birthdate %}
+                {{ person.birthdate }}
+                {% else %}
+                    Не указано
+                {% endif %}
+            </div>
+            <div class="col-1">
+                {{ person.game_count }}
+            </div>
+            <div class="col-1">
+                {% if person.chat_status %}
+                    Да
+                {% else %}
+                    Нет
+                {% endif %}
+            </div>
+            <div class="col-2">
+                {% if person.latest_task and person.is_active %}
+                    <form action="{% url 'manager-task-edit' person.latest_task.id %}"
+                          method="get"
+                          style="display:inline;">
+                        <button type="submit" class="btn btn-secondary">Править задачу</button>
+                    </form>
+                {% else %}
+                    <form action="{% url 'manager-task-create' person.id %}" method="get" style="display:inline;">
+                        <button type="submit" class="btn btn-primary">Новая задача</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+    {% else %}
+        <p id="container">Клиентов нет.</p>
+    {% endif %}
+    </div>
+
+</div>
+
+{% block javascript %}
+
+{% endblock javascript %}
+
+{% endblock %}

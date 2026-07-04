@@ -1,0 +1,99 @@
+{% extends "base_manager.html" %}
+{% block title %}
+Статистика
+{% endblock %}
+{% block header_title %}
+Статистика
+{% endblock %}
+{% block content %}
+
+<form method="get" class="mb-4">
+    <select id="month" name="month" class="form-select" style="width: 20%;">
+        {% for value, name in months %}
+        <option value="{{ value }}" {% if value == selected_month %}selected{% endif %}>
+            {{ name }}
+        </option>
+        {% endfor %}
+    </select>
+    <select id="year" name="year" class="form-select" style="width: 20%;">
+        {% for year in years %}
+        <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>
+            {{ year }}
+        </option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary">Показать статистику</button>
+</form>
+
+<h2>Статистика за {{ selected_month_name }} {{ selected_year }}</h2>
+<h2>Глобальная статистика</h2>
+<ul>
+    <li>Всего клиентов: {{ total_persons }}</li>
+    <li>Создано задач: {{ total_tasks }}</li>
+    <li>Завершено задач: {{ completed_tasks }}</li>
+    <li>Активных задач: {{ pending_tasks }}</li>
+    <li>Задач на повышение лояльности: {{ loyalty_tasks }}</li>
+    <li>Задач на предпродажные коммуникации: {{ presale_tasks }}</li>
+</ul>
+
+<div class="container-fluid">
+
+<h2>Статистика по сотрудникам</h2>
+
+    <div class="row bg-light font-weight-bold border-bottom py-2 align-items-center flex-wrap">
+        <div class="col text-center">Сотрудник</div>
+        <div class="col text-center">Всего задач</div>
+        <div class="col text-center">Повышение лояльности</div>
+        <div class="col text-center">Предпродажные коммуникации</div>
+        <div class="col text-center">Активные</div>
+        <div class="col text-center">Завершенные</div>
+        <div class="col text-center">Положительный результат</div>
+        <div class="col text-center">Отрицательный результат</div>
+    </div>
+
+    <div id="person-list">
+        {% for user in user_statistics %}
+        <div class="row border py-2 my-3 text-center align-items-center flex-wrap">
+
+            <div class="col">
+                {{ user.first_name }} {{ user.last_name }}
+            </div>
+            <div class="col">
+                {{ user.total_tasks }}
+            </div>
+            <div class="col">
+                {{ user.loyalty_tasks }}
+            </div>
+            <div class="col">
+                {{ user.presale_tasks }}
+            </div>
+            <div class="col">
+                {{ user.pending_tasks }}
+            </div>
+            <div class="col">
+                {{ user.completed_tasks }}
+            </div>
+            <div class="col">
+                {{ user.good_tasks }}
+            </div>
+            <div class="col">
+                {{ user.bad_tasks }}
+            </div>
+
+        </div>
+        {% empty %}
+        <div class="col">
+            No data available.
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+
+
+{% block javascript %}
+
+{% endblock javascript %}
+
+{% endblock %}

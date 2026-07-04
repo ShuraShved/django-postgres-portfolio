@@ -1,0 +1,307 @@
+{% extends "base_generic.html" %}
+{% block title %}
+{{ task.title }}
+{% endblock %}
+{% block header_title %}
+{{ task.title|slice:":20" }}{% if task.title|length > 20 %}...{% endif %}
+{% endblock %}
+{% block breadcrumbs %}
+<li class="breadcrumb-item active" aria-current="page">Детали задачи</li>
+{% endblock %}
+{% block content %}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-6 detail-form">
+            <strong>Заголовок задачи:</strong><br><h2>{{ task.title }}</h2>
+            <strong>Описание задачи:</strong><br><p>{{ task.description|default:"Нет описания" }}</p>
+            <form id="taskPersonForm" method="POST" data-task-id="{{ task.id }}" data-person-id="{{ task.person.id }}">
+            {% csrf_token %}
+            <div>
+                <label for="id_name">Имя:</label>
+                {{ person_form.name }}
+            </div>
+            <div>
+                <label for="id_surname">Фамилия:</label>
+                {{ person_form.surname|default:"" }}
+            </div>
+            <div>
+                <label for="id_patronymic">Отчество:</label>
+                {{ person_form.patronymic|default:"" }}
+            </div>
+            <div>
+                <label for="phone_number">Телефон:</label>
+                <input
+                    type="tel"
+                    name="phone_number"
+                    id="phone_number"
+                    value="{{ task.person.phone_number }}"
+                    required
+                    minlength="18"
+                    maxlength="18"
+                    placeholder="+7 (___) ___-__-__"
+                    title="Номер телефона в формате +7 (XXX) XXX-XX-XX"
+                    class="form-control">
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <label>Клиент уже добавлен в чат:</label>
+                <div class="d-flex align-items-center gap-2" aria-label="Chat Status">
+                    <button type="button"
+                            id="btn-yes"
+                            class="btn btn-black
+                                {% if task.person.chat_status %}
+                                active
+                                {% else %}
+                                inactive
+                                {% endif %}"
+                            data-value="true">
+                        Да
+                    </button>
+                    <button type="button"
+                            id="btn-no"
+                            class="btn btn-black
+                                {% if not task.person.chat_status %}
+                                active
+                                {% else %}
+                                inactive
+                                {% endif %}"
+                            data-value="false">
+                        Нет
+                    </button>
+                    {% if task.is_invite %}
+                        <span class="material-symbols-outlined important-icon">mode_heat</span>
+                    {% endif %}
+                </div>
+                <input type="hidden"
+                       id="chat_status"
+                       name="chat_status"
+                       value="{% if task.person.chat_status %}true{% else %}false{% endif %}">
+            </div>
+            <div>
+                <label for="birthdate">Дата рождения:</label>
+                <span>
+                    {% if task.person.birthdate %}
+                        {{ task.person.birthdate|date:"d.m.Y" }}
+                    ({{ person_age }} лет)
+                    {% else %}
+                        Не указано
+                    {% endif %}
+                </span>
+                <input
+                    type="date"
+                    id="birthdate"
+                    name="birthdate"
+                    value="{% if task.person.birthdate %}{{ task.person.birthdate|date:'Y-m-d' }}{% endif %}"
+                />
+            </div>
+            {{ form.as_p }} <!-- Поле комментария задачи -->
+            <button type="button" class="btn btn-primary" id="saveBtn">Сохранить</button>
+            </form>
+            <div style="margin:15px 0px 15px 0px;">
+                <span>Завершить задачу</span>
+            </div>
+            <div class="d-flex flex-row gap-3">
+                <form method="POST" action="/api/home/task/{{ task.id }}/good/">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success">Успешно ✔</button>
+                </form>
+                <form method="POST" action="/api/home/task/{{ task.id }}/bad/">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Неуспешно ✘</button>
+                </form>
+            </div>
+            <div class="d-flex flex-row gap-3">
+                <form method="POST" action="/api/home/task/{{ task.id }}/no-contact/">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Не контактный</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-6 align-items-center second-half text-center">
+            <h3 style="margin-top:15px;">Игры клиента</h3>
+            <ul>
+                {% for person_game in person_games %}
+                    <li>
+                        •
+                        {{ person_game.game.name }}
+                        {% if person_game.played_at %}
+                            (Играл: {{ person_game.played_at|date:"d.m.Y H:i" }})
+                        {% else %}
+                            (Дата игры не указана)
+                        {% endif %}
+                    </li>
+                {% empty %}
+                    <li>Клиент не играл в игры.</li>
+                {% endfor %}
+            </ul>
+            <div class="mt-auto">
+                <a href="https://ourvrsite.fake/" class="d-block mb-1">Каталог игр</a>
+                <a href="https://ourvrsite.fake/games/time" class="d-block mb-1">Доступное время</a>
+                <span class="d-block mb-3">Отправить приглашение в чат:
+                    <a id="messageapp-link" href="{{ messageapp_link }}" target="_blank">Messenger</a>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <br>
+
+
+
+{% if tasks %}
+
+
+    <div class="row bg-light font-weight-bold border-bottom py-2 align-items-center">
+        <div class="col-1 text-center">ID</div>
+        <div class="col-2 text-center">Название</div>
+        <div class="col-1 text-center">Статус</div>
+        <div class="col-2 text-center">Ответственный</div>
+        <div class="col-2 text-center">Дата начала</div>
+        <div class="col-2 text-center">Дата завершения</div>
+        <div class="col-2 text-center">Действия</div>
+    </div>
+
+    <div id="task-list" style="padding-bottom: 20px;">
+        {% for task in tasks %}
+        <div class="row border py-2 my-3 text-center align-items-center" id="task-{{ task.id }}">
+
+            <div class="col-1">
+                {{ task.id }}
+            </div>
+            <div class="col-2">
+                {{ task.title|slice:":20" }}{% if task.title|length > 20 %}...{% endif %}
+            </div>
+            <div class="col-1">
+                {% if task.status %}
+                    ✔️
+                {% elif task.status is False %}
+                    ❌
+                {% else %}
+                    Не завершено
+                {% endif %}
+            </div>
+            <div class="col-2">
+                {{ task.user.first_name }} {{ task.user.last_name }}
+            </div>
+            <div class="col-2">
+                {{ task.created_at }}
+            </div>
+            <div class="col-2">
+                {{ task.completed_at }}
+            </div>
+            <div class="col-2">
+                <form action="{% url 'task-view' task.id %}" method="get" style="display:inline;">
+                    <button type="submit" class="btn btn-secondary">Просмотр задачи</button>
+                </form>
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p id="container">Истории нет.</p>
+{% endif %}
+
+
+<div id="popupMessage" style="display: none; position: fixed; top: 10px; right: 10px; background: #4CAF50; color: white; padding: 10px; border-radius: 5px;">
+    Изменения сохранены!
+</div>
+
+</div>
+
+{% block javascript %}
+<script>
+// Наполнение и валидация номера телефона
+document.addEventListener('DOMContentLoaded', function () {
+    const phoneInput = document.getElementById('phone_number');
+
+    // Форматирование номера в реальном времени
+    phoneInput.addEventListener('input', function () {
+        let value = phoneInput.value.replace(/[^\d\+]/g, '');  // Удаление всех не чисел кроме +
+
+        // '+' в начале
+        if (value.length > 1 && value[0] !== '+') {
+            value = '+' + value;
+        }
+
+        // Apply the formatting
+        const formattedValue = value
+            .replace(/^(\+?)(\d{1})/, '+$2')  // Начало первой цифры с '+'
+            .replace(/(\+?\d{1})(\d{3})/, '$1 ($2)')  // Код страны
+            .replace(/(\(\d{3}\))(\d{3})(\d{1,2})/, '$1 $2-$3')  // Локальный номер
+            .replace(/(\d{3})-(\d{2})(\d{2})$/, '$1-$2-$3');  // Финальное форматирование
+
+        phoneInput.value = formattedValue.substring(0, 20);  // Максимальная длина
+    });
+
+    // Очистка номера телефона от ненужных элементов перед сохранением
+    const form = document.querySelector('#taskPersonForm');
+    form.addEventListener('submit', function() {
+        const phoneValue = phoneInput.value.replace(/[^\d\+]/g, '');
+        phoneInput.value = phoneValue;
+    });
+});
+
+// Логика кнопок
+document.addEventListener("DOMContentLoaded", function () {
+    const yesButton = document.getElementById("btn-yes");
+    const noButton = document.getElementById("btn-no");
+    const hiddenInput = document.getElementById("chat_status");
+
+        function toggleButtons(selectedButton, otherButton) {
+            selectedButton.classList.add("active");
+            selectedButton.classList.remove("inactive");
+            otherButton.classList.add("inactive");
+            otherButton.classList.remove("active");
+            hiddenInput.value = selectedButton.dataset.value;
+        }
+
+        yesButton.addEventListener("click", function () {
+            toggleButtons(yesButton, noButton);
+        });
+
+        noButton.addEventListener("click", function () {
+            toggleButtons(noButton, yesButton);
+        });
+});
+$(document).ready(function () {
+    $("#saveBtn").on("click", function () {
+        const taskId = $("#taskPersonForm").data("task-id");
+        const personId = $("#taskPersonForm").data("person-id");
+        const formData = $("#taskPersonForm").serialize();
+
+        // Обновление полей контакта
+        $.ajax({
+            url: `/api/home/task-person/save/?task_id=${taskId}&person_id=${personId}`,
+            type: "POST",
+            headers: {
+                "X-CSRFToken": $('[name=csrfmiddlewaretoken]').val(),
+            },
+            data: formData,
+            success: function (response) {
+                if (response.success) {
+                    showPopupMessage("Изменения сохранены!", true);
+                    const messageappLink = $("#messageapp-link");
+                    messageappLink.attr("href", response.messageapp_link);
+                } else {
+                    showPopupMessage("Ошибка при изменении.", false);
+                }
+            },
+            error: function (xhr) {
+                const errorMessage = xhr.responseJSON?.errors || "Unknown error";
+                showPopupMessage(`Ошибка: ${errorMessage}`, false);
+            },
+        });
+    });
+
+    function showPopupMessage(message, isSuccess) {
+        const $popup = $("#popupMessage");
+        $popup.text(message);
+        $popup.css("background", isSuccess ? "#4CAF50" : "#f44336");
+        $popup.fadeIn(200).delay(2000).fadeOut(200);
+    }
+});
+</script>
+{% endblock javascript %}
+
+{% endblock %}
