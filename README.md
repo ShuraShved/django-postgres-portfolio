@@ -22,19 +22,29 @@
 git clone https://github.com/ShuraShved/django-postgres-portfolio.git
 cd django-postgres-portfolio
 ```
+
+2. Создать файл `.env` с настройками в корневой директории:
+
+SECRET_KEY=secret_key
+
+POSTGRES_DB=db_name
+
+POSTGRES_USER=db_user
+
+POSTGRES_PASSWORD=db_password
  
-2. Собрать и запустить контейнеры (база данных + Django-приложение):
+4. Собрать и запустить контейнеры (база данных + Django-приложение):
 ```bash
 docker compose up --build
 ```
  
-3. Применить миграции и загрузить демонстрационные данные:
+4. Применить миграции и загрузить демонстрационные данные:
 ```bash
 docker compose exec web python manage.py migrate
 docker compose exec web python manage.py loaddata demo_data.json
 ```
  
-4. Открыть в браузере:
+5. Открыть в браузере:
 ```
 http://localhost:8000
 ```
