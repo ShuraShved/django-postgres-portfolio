@@ -33,7 +33,7 @@ POSTGRES_USER=db_user
 
 POSTGRES_PASSWORD=db_password
  
-4. Собрать и запустить контейнеры (база данных + Django-приложение):
+3. Собрать и запустить контейнеры (база данных + Django-приложение):
 ```bash
 docker compose up --build
 ```
